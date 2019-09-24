@@ -111,7 +111,7 @@
 - 인터페이스만 사용하여 부품을 조립하고 제품을 만든다.
 - 인터페이스를 구현한 하위 단계에서 구체적인 공장, 구체적인 부품, 구체적인 제품을 생산한다.
 
-![1569141641972](https://github.com/rlatkddn212/design-pattern-overview/blob/master/image\1569141641972.png)
+![1569141641972](https://github.com/rlatkddn212/design-pattern-overview/blob/master/image/1569141641972.png)
 
 - 공장을 새로 추가한다면?
   - 위 다이어그램에서 공장3을 추가한다고 할때 공장 3에 제품 1, 2에 관한 메서드를 추가하는 것 이외 작업은 필요없음
@@ -330,16 +330,62 @@ int main()
 
 
 
-
 ## 팩토리 메서드 패턴
 
+> (공장) 객체를 사용하여 구체 객체를 생성
+
+![img](https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/FactoryMethod.svg/300px-FactoryMethod.svg.png)
+
+- 위 다이어그램에서 Product(구체 객체)를 생성할 때, factory객체에 도움을 받아서 생성
+- C++ 11에 make_shared<T>() 메서드가 팩토리 메서드의 대표적인 예?
 
 
-## 프로토타입 패턴
+
+## 프로토 타입 패턴
+
+> 객체를 처음부터 생성하지 않고, 기존에 존재하던 객체를 복제하여 새로운 객체를 생성
+
+![img](https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Prototype_UML.svg/600px-Prototype_UML.svg.png)
+
+- 직접 객체를 생성하지 않기 때문에 객체 생성에 대한 오버헤드가 없음
+- 기존 객체가 프로토 타입 역할
+- Clone 메소드를 제공하여 객체를 복사할 수 있게 한다.
 
 
 
 ## 싱글턴 패턴
+
+> 객체를 하나만 제공한다.
+
+- 객체를 하나만 만들 수 있다. 주로 관리 객체로 사용된다.
+- 전역적으로 접근 가능하다. 그 때문에 객체지향에 원칙을 위반한다는 여론이 있다. 하지만 디자인 패턴에서 가장 많이 사용되는 패턴
+
+
+
+### 예제
+
+- 구현 방법이 다양한데, 기본적으로 생성자를 private으로 하고 getInstance메소드를 제공한다.
+- 싱글턴 클래스를 부모로 상속 받아 사용하는 경우도 있다.
+
+```c++
+struct Manager
+{
+priavte:
+  Manager();
+public:
+	Manager* getInstance()
+  {
+    static Manager* mngr = null;
+    if (mngr == null)
+    {
+      mngr = new Manager();
+    }
+    return mngr;
+  }
+};
+```
+
+
 
 
 
