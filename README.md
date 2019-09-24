@@ -111,7 +111,7 @@
 - 인터페이스만 사용하여 부품을 조립하고 제품을 만든다.
 - 인터페이스를 구현한 하위 단계에서 구체적인 공장, 구체적인 부품, 구체적인 제품을 생산한다.
 
-![1569141641972](C:\Users\swkim\AppData\Roaming\Typora\typora-user-images\1569141641972.png)
+![1569141641972](https://github.com/rlatkddn212/design-pattern-overview/blob/master/image\1569141641972.png)
 
 - 공장을 새로 추가한다면?
   - 위 다이어그램에서 공장3을 추가한다고 할때 공장 3에 제품 1, 2에 관한 메서드를 추가하는 것 이외 작업은 필요없음
