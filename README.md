@@ -535,9 +535,130 @@ cout << myPizza->GetCost() << endl;
 
 
 
-## 반복자 패턴
+## 반복자(Iterator) 패턴
 
 > 반복자를 사용하여 컨테이너의 요소를 차례로 접근하는 디자인 패턴
+
+- 컨테이너를 하나씩 검색할 때 for 문을 사용하여 i를 1씩 증가시키며 찾는다.
+- for문에서 사용되는 i를 추상화하는 패턴이다.
+- 
+
+``` c++
+
+#include <iostream>
+#include <string>
+#include <vector>
+using namespace std;
+
+class Book
+{
+public:
+	Book(string n) : name(n) {}
+	string GetName()
+	{
+		return name;
+	}
+
+	string name;
+};
+
+class Iterator
+{
+public:
+	Iterator() {}
+	virtual ~Iterator() {}
+	virtual bool HasNext() = 0;
+	virtual Book Next() = 0;
+};
+
+class Aggregate
+{
+public:
+	Aggregate() {}
+	virtual ~Aggregate() {}
+	virtual Iterator* iterator() = 0;
+};
+
+
+class BookShelf :public Aggregate
+{
+public:
+	BookShelf() {}
+	Book GetBookAt(int idx) 
+	{
+		return books[idx];
+	}
+
+	void AppendBook(Book book)
+	{
+		books.push_back(book);
+	}
+
+	int GetLength() 
+	{
+		return books.size();
+	}
+
+	Iterator* iterator();
+
+private:
+	vector<Book> books;
+};
+
+class BookShelfIterator : public Iterator
+{
+public:
+	BookShelfIterator(BookShelf* bookShelf)
+	{
+		mBookShelf = bookShelf;
+		idx = 0;
+	}
+
+	bool HasNext()
+	{
+		if (idx < mBookShelf->GetLength())
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	Book Next()
+	{
+		Book book = mBookShelf->GetBookAt(idx);
+		idx++;
+		return book;
+	}
+
+private:
+	BookShelf* mBookShelf;
+	int idx;
+};
+
+Iterator* BookShelf::iterator()
+{
+	return new BookShelfIterator(this);
+}
+
+int main()
+{
+	BookShelf bookShelf;
+	Book book1("Hello world");
+	Book book2("C++");
+	bookShelf.AppendBook(book1);
+	bookShelf.AppendBook(book2);
+
+	BookShelfIterator iter(&bookShelf);
+
+	while (iter.HasNext())
+	{
+		Book book = iter.Next();
+		cout << book.GetName() << endl;
+	}
+}
+
+```
 
 [![img](https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Iterator_UML_class_diagram.svg/500px-Iterator_UML_class_diagram.svg.png)](https://en.wikipedia.org/wiki/File:Iterator_UML_class_diagram.svg)
 
