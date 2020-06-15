@@ -393,8 +393,73 @@ public:
   - 클래스가 제공하는 것 (220V)을 어댑터 패턴을 통해 적절하게 연결 할 수 있다.
 - 위 다이어그램에서 Adaptee가 제공해주는 것과 우리가 필요한 것을 어댑터로 연결해준다.
 - wrapper 패턴이라고도 부른다.
+- 주로 기존에 사용하던 클래스를 다른 곳에 재사용하고 싶은데 사용하는 인터페이스만 다르게 정의하고 싶을 때 사용된다.
 
+``` c++
+#include <iostream>
+#include <string>
+#include <vector>
+using namespace std;
 
+class Banner
+{
+public:
+
+	Banner(string s) : str(s)
+	{
+	}
+
+	void ShowWithParen()
+	{
+		cout << "(" << str << ")\n";
+	}
+
+	void ShowWithAster()
+	{
+		cout << "*" << str << "*\n";
+	}
+
+private:
+	string str;
+};
+
+class Print
+{
+public:
+	virtual ~Print() {}
+	virtual void PrintWeak() = 0;
+	virtual void PrintStrong() = 0;
+};
+
+class PrintBanner : public Banner, public Print
+{
+public:
+	PrintBanner(string s) : Banner(s)
+	{
+
+	}
+
+	void PrintWeak()
+	{
+		ShowWithParen();
+	}
+
+	void PrintStrong()
+	{
+		ShowWithAster();
+	}
+};
+
+int main()
+{
+	string s = "Hello World!";
+	Print* p = new PrintBanner(s);
+	p->PrintStrong();
+	p->PrintWeak();
+
+	return 0;
+}
+```
 
 
 
