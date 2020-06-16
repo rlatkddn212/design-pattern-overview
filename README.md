@@ -1702,10 +1702,203 @@ int main()
 
 > 데이터 구조와 알고리즘을 분리시키는 디자인 패턴
 
+- 일반적인 클래스 구조는, 맴버 변수(데이터), 맴버 메서드(알고리즘)로 구성되는데 이걸 분리한다니?
+
+
 [![img](https://upload.wikimedia.org/wikipedia/en/thumb/e/eb/Visitor_design_pattern.svg/430px-Visitor_design_pattern.svg.png)](https://en.wikipedia.org/wiki/File:Visitor_design_pattern.svg)
 
 
+``` C++
+#include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
+class Element;
+class File;
+class Directory;
+class Visitor : public enable_shared_from_this<Visitor>
+{
+public:
+	virtual void Visit(shared_ptr<Element> file) = 0;
+};
 
+class ListVisitor :public Visitor
+{
+public:
+	virtual void Visit(shared_ptr<Element> file);
+
+private:
+	string currentdir;
+};
+
+class Element {
+public:
+	virtual void accept(shared_ptr<Visitor> v) = 0;
+};
+
+class Entry : public Element, public enable_shared_from_this<Entry>
+{
+public:
+	virtual string GetName() = 0;
+	virtual int GetSize() = 0;
+	virtual shared_ptr<Entry> Add(shared_ptr<Entry> entry)
+	{
+		return nullptr;
+	}
+
+	virtual void PrintList()
+	{
+		PrintList(" ");
+	}
+
+	virtual void PrintList(string str) = 0;
+	string ToString()
+	{
+		return GetName() + "(" + to_string(GetSize()) + ")";
+	}
+
+private:
+
+};
+
+class File :public Entry
+{
+public:
+	File(string name, int size)
+	{
+		mName = name;
+		mSize = size;
+	}
+
+	string GetName()
+	{
+		return mName;
+	}
+
+	int GetSize()
+	{
+		return mSize;
+	}
+
+	virtual void accept(shared_ptr<Visitor> v)
+	{
+		v->Visit(shared_from_this());
+	}
+
+protected:
+	void PrintList(string str)
+	{
+		cout << str << "/" << mName << "(" << GetSize() << ")" << "\n";
+	}
+
+private:
+	string mName;
+	int mSize;
+};
+
+class Directory : public Entry
+{
+public:
+	Directory(string name)
+	{
+		mName = name;
+	}
+
+	string GetName()
+	{
+		return mName;
+	}
+
+	int GetSize()
+	{
+		int size = 0;
+		for (auto it : mDirectory)
+		{
+			size += it->GetSize();
+		}
+
+		return size;
+	}
+
+	shared_ptr<Entry> Add(shared_ptr<Entry> entry)
+	{
+		mDirectory.push_back(entry);
+
+		return shared_from_this();
+	}
+
+	virtual void PrintList()
+	{
+		PrintList("");
+	}
+
+	vector<shared_ptr<Entry>> GetDir()
+	{
+		return mDirectory;
+	}
+
+	virtual void accept(shared_ptr<Visitor> v)
+	{
+		v->Visit(shared_from_this());
+	}
+
+protected:
+	void PrintList(string str)
+	{
+		cout << str << "/" << mName << "(" << GetSize() << ")" << "\n";
+
+		for (auto it : mDirectory)
+		{
+			it->PrintList(str + "/" + mName);
+		}
+	}
+
+private:
+	string mName;
+	vector<shared_ptr<Entry>> mDirectory;
+};
+
+void ListVisitor::Visit(shared_ptr<Element> element)
+{
+	shared_ptr<File> file = dynamic_pointer_cast<File>(element);
+	if (file)
+	{
+		cout << currentdir << "/" << file->GetName() << "\n";
+	}
+	
+	shared_ptr<Directory> dir = dynamic_pointer_cast<Directory>(element);
+	if (dir)
+	{
+		cout << currentdir << "/" << dir->GetName() << "\n";
+		string saveDir = currentdir;
+		currentdir = currentdir + "/" + dir->GetName();
+
+		for (auto it : dir->GetDir())
+		{
+			it->accept(shared_from_this());
+		}
+	}
+}
+
+int main()
+{
+	shared_ptr<Directory> rootDir = make_shared<Directory>("root");
+	shared_ptr<Directory> binDir = make_shared<Directory>("bin");
+	shared_ptr<Directory> tmpDir = make_shared<Directory>("tmp");
+	shared_ptr<Directory> usrDir = make_shared<Directory>("usr");
+
+	rootDir->Add(binDir);
+	rootDir->Add(tmpDir);
+	rootDir->Add(usrDir);
+
+	binDir->Add(make_shared<File>("vi", 10000));
+	usrDir->Add(make_shared<File>("asd", 10000));
+
+	rootDir->accept(make_shared<ListVisitor>());
+
+	return 0;
+}
+```
 
 
 ## 참고 자료
