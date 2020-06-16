@@ -93,9 +93,7 @@
 
 
 - 추상적인 공장에서 추상적인 제품을 만든다.
-
 - 객체 지향에서 추상적인(abstract)는 구체적인 구현이 무엇인지를 생각하지 않고 인터페이스만을 생각
-
 - 인터페이스만 사용하여 부품을 조립하고 제품을 만든다.
 - 인터페이스를 구현한 하위 단계에서 구체적인 공장, 구체적인 부품, 구체적인 제품을 생산한다.
 
@@ -198,8 +196,8 @@ int main()
 
 > 객체의 생성 과정과 표현 방법을 분리, 객체에 다른 표현 결과를 만들 수 있게 하는 패턴
 
-- 복잡한 객체를 조립
-- 복잡한 단계를 거쳐 생성되는 객체일 경우 사용
+- 복잡한 객체를 조립, 한번에 완성하기 어려운 객체
+- 복잡한 객체를 단계를 밟아 만들어 나간다.
 
 [![Builder Structure](https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Builder_UML_class_diagram.svg/500px-Builder_UML_class_diagram.svg.png)](https://en.wikipedia.org/wiki/File:Builder_UML_class_diagram.svg)
 
@@ -208,7 +206,7 @@ int main()
 - 카메라 앱에서 새로운 이미지를 만들어 화면에 보여준다고 해보자.
 - 새로운 이미지를 만들 때 필터를 적용하고, 메이크업 해주고, 토끼 귀를 머리에 달아 줄수 있다.
 - 이렇게 여러 단계를 거쳐 생성되는 작업에 빌드 패턴을 적용해 볼 수있다.
-``` c++
+``` c++                                                                                                                                                                                                                                                                                                                                                                                                                   
 /**
  * 빌더 패턴
  * 복합 객체의 생성 과정과 표현 방법을 분리하여 동일한 생성 절차에서 서로 다른 표현 결과를 만들 수 있게 하는 패턴
@@ -652,7 +650,131 @@ int main()
 - 기능과 구현을 둘다 가진 클래스 일 경우 이를 기능과 구현부로 분리
 - 분리한 기능과 구현에 다리를 놓아 연결 시키는 패턴
 
+``` c++
+#include <iostream>
+#include <string>
+using namespace std;
 
+// 구현
+class DisplayImpl
+{
+public:
+	virtual void RawOpen() = 0;
+	virtual void RawPrint() = 0;
+	virtual void RawClose() = 0;
+private:
+
+};
+
+// 추상
+class Display
+{
+public:
+	Display(shared_ptr<DisplayImpl> impl)
+	{
+		mImpl = impl;
+	}
+
+	void Open()
+	{
+		mImpl->RawOpen();
+	}
+
+	void Print()
+	{
+		mImpl->RawPrint();
+	}
+
+	void Close()
+	{
+		mImpl->RawClose();
+	}
+
+	void Show()
+	{
+		Open();
+		Print();
+		Close();
+	}
+
+private:
+	shared_ptr<DisplayImpl> mImpl;
+};
+
+class CountDisplay : public Display
+{
+public:
+	CountDisplay(shared_ptr<DisplayImpl> impl) : Display(impl) {}
+
+	void MultiShow(int t)
+	{
+		Open();
+		for (int i = 0; i < t; ++i)
+		{
+			Print();
+		}
+
+		Close();
+	}
+
+private:
+
+};
+
+// 구현 클래스
+class StringDisplayImpl : public DisplayImpl
+{
+public:
+	StringDisplayImpl(string s) : str(s), len(s.size())
+	{
+	}
+
+	virtual void RawOpen()
+	{
+		printLine();
+	}
+
+	virtual void RawPrint()
+	{
+		cout << "|" << str << "|\n";
+	}
+
+	virtual void RawClose()
+	{
+		printLine();
+	}
+
+	void printLine()
+	{
+		cout << "+";
+		for (int i = 0; i < len; ++i)
+		{
+			cout << "-";
+		}
+
+		cout << "+\n";
+	}
+
+private:
+	string str;
+	int len;
+};
+
+int main()
+{
+	shared_ptr<Display> d1 = make_shared<Display>(make_shared<StringDisplayImpl>("Hello, World!"));
+	shared_ptr<Display> d2 = make_shared<Display>(make_shared<StringDisplayImpl>("Hello, Korea!"));
+
+	shared_ptr<CountDisplay> d3 = make_shared<CountDisplay>(make_shared<StringDisplayImpl>("Hello, Universe!"));
+
+	d1->Show();
+	d2->Show();
+	
+	d3->MultiShow(5);
+
+	return 0;
+}
+```
 
 ## 컴포지트 패턴
 
