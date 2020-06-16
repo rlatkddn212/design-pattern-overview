@@ -1086,7 +1086,205 @@ TODO
   - 전략 패턴은 전략 객체 내부에서 상태를 변경하지 않고 외부에서 변경하여 적절한 알고리즘을 선택한다.
 - 알고리즘(전략)을 교체하여 같은 문제를 다른 방법으로 해결한다.
 
+``` c++
+#include <iostream>
+#include <vector>
+using namespace std;
 
+enum MUK_CHI_BA
+{
+	MUK,
+	CHI,
+	BA,
+};
+
+class Hand
+{
+public:
+	Hand(MUK_CHI_BA mcb)
+	{
+		mHandValue = mcb;
+	}
+
+	bool IsStrongerThan(shared_ptr<Hand> h)
+	{
+		return Fight(h) == 1;
+	}
+
+	int Fight(shared_ptr<Hand> h)
+	{
+		if (this == h.get())
+		{
+			return 0;
+		}
+		else if ((this->mHandValue + 1) % 3 == h->mHandValue)
+		{
+			return 1;
+		}
+		else
+		{
+			return -1;
+		}
+	}
+
+	static shared_ptr<Hand> GetHand(int k)
+	{
+		return h[k];
+	}
+
+private:
+	static vector<shared_ptr<Hand>> h;
+
+	MUK_CHI_BA mHandValue;
+};
+
+vector<shared_ptr<Hand>> Hand::h =
+{
+	make_shared<Hand>(MUK),
+	make_shared<Hand>(CHI),
+	make_shared<Hand>(BA),
+};
+
+class Strategy
+{
+public:
+	virtual shared_ptr<Hand> NextHand() = 0;
+	virtual void study(bool bWin) = 0;
+
+private:
+
+};
+
+class AStrategy : public Strategy
+{
+public:
+	virtual shared_ptr<Hand> NextHand()
+	{
+		if (!mbWin)
+		{
+			prevHand = Hand::GetHand(0);
+		}
+
+		return prevHand;
+	}
+
+	virtual void study(bool bWin)
+	{
+		mbWin = bWin;
+	}
+
+private:
+	bool mbWin;
+	shared_ptr<Hand> prevHand;
+};
+
+class BStrategy : public Strategy
+{
+	virtual shared_ptr<Hand> NextHand()
+	{
+		return Hand::GetHand(rand() % 3);
+	}
+
+	virtual void study(bool bWin)
+	{
+		mbWin = bWin;
+	}
+
+private:
+	bool mbWin;
+	shared_ptr<Hand> prevHand;
+
+};
+
+class CStrategy : public Strategy
+{
+	virtual shared_ptr<Hand> NextHand()
+	{
+		if (!mbWin)
+		{
+			prevHand = Hand::GetHand(rand() % 3);
+		}
+
+		return prevHand;
+	}
+
+	virtual void study(bool bWin)
+	{
+		mbWin = bWin;
+	}
+
+private:
+	bool mbWin;
+	shared_ptr<Hand> prevHand;
+
+};
+
+class Player
+{
+public:
+	Player(shared_ptr<Strategy> strategy)
+	{
+		mStrategy = strategy;
+	}
+
+	shared_ptr<Hand> NextHand()
+	{
+		return mStrategy->NextHand();
+	}
+
+	void win()
+	{
+		mStrategy->study(true);
+	}
+	void lose()
+	{
+		mStrategy->study(false);
+	}
+	void even()
+	{
+
+	}
+
+private:
+	shared_ptr<Strategy> mStrategy;
+	int prevHandValue = 0;
+	int currentHandValue = 0;
+};
+
+
+int main()
+{
+	shared_ptr<Player> player0 = make_shared<Player>(make_shared<AStrategy>());
+	shared_ptr<Player> player1 = make_shared<Player>(make_shared<BStrategy>());
+
+	for (int i = 0; i < 100; ++i)
+	{
+		shared_ptr<Hand> h0 = player0->NextHand();
+		shared_ptr<Hand> h1 = player1->NextHand();
+
+		if (h0->IsStrongerThan(h1))
+		{
+			cout << "p0 승리\n";
+			player0->win();
+			player1->lose();
+		}
+		else if (h1->IsStrongerThan(h0))
+		{
+			cout << "p1 승리\n";
+			player0->win();
+			player1->lose();
+		}
+		else
+		{
+			cout << "무승부 .. \n";
+			player0->even();
+			player1->even();
+		}
+	}
+
+	return 0;
+}
+```
 
 ## 템플릿 메소드 패턴
 
