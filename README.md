@@ -666,7 +666,7 @@ private:
 
 };
 
-// 추상
+// 기능 
 class Display
 {
 public:
