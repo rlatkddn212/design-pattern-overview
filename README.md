@@ -797,10 +797,116 @@ TODO
 [![img](https://upload.wikimedia.org/wikipedia/commons/2/2a/W3sDesign_Template_Method_Design_Pattern_UML.jpg)](https://en.wikipedia.org/wiki/File:W3sDesign_Template_Method_Design_Pattern_UML.jpg)
 
 
-
-- 상위 클래스에서 어떻게 동작하는지는 알 수 있지만, 큰그림은 수정하지 못하게 한다.
+- 상위 클래스에서 알고리즘이 추상적으로 정의되어 있고, 하위 클래스에서 이를 구현한다.
 - 사용자가 클래스를 상속 받아 하위 클래스에서 primitive1,primitive2를 구현할 수 있다.
+- 상위 클래스와 하위 클래스가 강하게 연결되어 연락을 주고 받는다.
+- 상위 클래스의 내용을 모르면 하위 클래스를 구현하기 힘들다.
 
+``` c++
+#include <iostream>
+#include <string>
+using namespace std;
+
+
+class AbstractDisplay
+{
+public:
+	virtual void Open() = 0;
+	virtual void Print() = 0;
+	virtual void Close() = 0;
+	
+	// Open Print Close를 하위 클래스에서 구현하면 Display가 동작
+	void Display()
+	{
+		Open();
+		for (int i = 0; i < 10; ++i)
+		{
+			Print();
+		}
+
+		Close();
+	}
+};
+
+class CharDisplay : public AbstractDisplay
+{
+public:
+	CharDisplay(char c)
+	{
+		chr = c;
+	}
+
+	virtual void Open()
+	{
+		cout << "<<";
+	}
+
+	virtual void Print()
+	{
+		cout << chr;
+	}
+
+	virtual void Close()
+	{
+		cout << ">>\n";
+	}
+
+private:
+	char chr;
+};
+
+class StringDisplay : public AbstractDisplay
+{
+public:
+	StringDisplay(string s)
+	{
+		str = s;
+	}
+
+	virtual void Open()
+	{
+		cout << "+";
+		for (int i = 0; i < str.size(); ++i)
+			cout << "-";
+		cout << "+\n";
+	}
+
+	virtual void Print()
+	{
+		
+			cout << "|";
+			cout << str;
+			cout << "|\n";
+	}
+
+	virtual void Close()
+	{
+		cout << "+";
+		for (int i = 0; i < str.size(); ++i)
+			cout << "-";
+		cout << "+";
+	}
+
+private:
+	string str;
+};
+
+
+int main()
+{
+	AbstractDisplay* cd = new CharDisplay('H');
+	AbstractDisplay* sd = new StringDisplay("Hello World");
+
+	cd->Display();
+	sd->Display();
+
+	delete cd;
+	delete sd;
+
+	return 0;
+}
+
+```
 
 
 ## 비지터 패턴
