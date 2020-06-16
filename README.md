@@ -783,8 +783,142 @@ int main()
 [![img](https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Composite_UML_class_diagram_%28fixed%29.svg/600px-Composite_UML_class_diagram_%28fixed%29.svg.png)](https://en.wikipedia.org/wiki/File:Composite_UML_class_diagram_(fixed).svg)
 
 - 파일 시스템에 디렉토리 구조, 게임 엔진에 씬 트리가 대표적인 예제
+- 재귀적인 구조를 만들어 내는 패턴
 
 
+``` c++
+#include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
+
+class Entry : public enable_shared_from_this<Entry>
+{
+public:
+	virtual string GetName() = 0;
+	virtual int GetSize() = 0;
+	virtual shared_ptr<Entry> Add(shared_ptr<Entry> entry)
+	{
+		return nullptr;
+	}
+
+	virtual void PrintList()
+	{
+		PrintList(" ");
+	}
+
+	virtual void PrintList(string str) = 0;
+	string ToString()
+	{
+		return GetName() + "(" + to_string(GetSize()) + ")";
+	}
+
+private:
+	
+};
+
+class FileObject :public Entry
+{
+public:
+	FileObject(string name, int size)
+	{
+		mName = name;
+		mSize = size;
+	}
+
+	string GetName()
+	{
+		return mName;
+	}
+
+	int GetSize()
+	{
+		return mSize;
+	}
+
+
+protected:
+	void PrintList(string str)
+	{
+		cout << str << "/" << mName << "(" << GetSize() << ")" << "\n";
+	}
+
+private:
+	string mName;
+	int mSize;
+};
+
+class Directory : public Entry
+{
+public:
+	Directory(string name)
+	{
+		mName = name;
+	}
+
+	string GetName()
+	{
+		return mName;
+	}
+
+	int GetSize()
+	{
+		int size = 0;
+		for (auto it : mDirectory)
+		{
+			size += it->GetSize();
+		}
+
+		return size;
+	}
+
+	shared_ptr<Entry> Add(shared_ptr<Entry> entry)
+	{
+		mDirectory.push_back(entry);
+
+		return shared_from_this();
+	}
+
+	virtual void PrintList()
+	{
+		PrintList("");
+	}
+
+protected:
+	void PrintList(string str)
+	{
+		cout << str << "/" << mName << "(" << GetSize() << ")" << "\n";
+
+		for (auto it : mDirectory)
+		{
+			it->PrintList(str + "/" + mName);
+		}
+	}
+
+private:
+	string mName;
+	vector<shared_ptr<Entry>> mDirectory;
+};
+
+int main()
+{
+	shared_ptr<Directory> rootDir = make_shared<Directory>("root");
+	shared_ptr<Directory> binDir = make_shared<Directory>("bin");
+	shared_ptr<Directory> tmpDir = make_shared<Directory>("tmp");
+	shared_ptr<Directory> usrDir = make_shared<Directory>("usr");
+
+	rootDir->Add(binDir);
+	rootDir->Add(tmpDir);
+	rootDir->Add(usrDir);
+
+	binDir->Add(make_shared<FileObject>("vi", 10000));
+	usrDir->Add(make_shared<FileObject>("asd", 10000));
+
+	rootDir->PrintList();
+
+	return 0;
+}
+```
 
 ## 데코레이터 패턴
 
