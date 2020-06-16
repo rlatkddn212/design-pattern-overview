@@ -24,7 +24,7 @@
 - 상속보다 인터페이스를 사용하여 코드를 작성
   - 상속은 부모 클래스의 세부 사항을 알 필요가 있음
   - 부모 클래스가 변경될 경우 자식 클래스들도 수정 필요
-
+- 부모 클래스에서 많은 구현을 하면, 자식 클래스에 자유도가 줄어든다. 부모 클래스에서 구현이 적으면, 자식 클래스들에 코드 중복이 늘어 날 수 있다.
 
 
 ## SOLID 원칙
@@ -325,8 +325,96 @@ int main()
 ![img](https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/FactoryMethod.svg/300px-FactoryMethod.svg.png)
 
 - 위 다이어그램에서 Product(구체 객체)를 생성할 때, factory객체에 도움을 받아서 생성
-- C++ 11에 make_shared<T>() 메서드가 팩토리 메서드의 대표적인 예?
+- 인스턴스를 생성하는 방법을 템플릿 메서드 패턴으로 한다.
 
+``` c++
+#include <iostream>
+#include <string>
+#include <vector>
+#include <memory>
+using namespace std;
+
+class Product
+{
+public:
+	virtual void use() = 0;
+};
+
+// 템플릿 메서드와 동일하게 부모클래스에서 대략적인 알고리즘 제공
+class Factory
+{
+public:
+	shared_ptr<Product> create(string str)
+	{
+		shared_ptr<Product> p = createProduct(str);
+		registerProduct(p);
+
+		return p;
+	}
+
+protected:
+	virtual shared_ptr<Product> createProduct(string str) = 0;
+	virtual void registerProduct(shared_ptr<Product> product) = 0;
+};
+
+class IDCard : public Product
+{
+public:
+	IDCard(string own)
+	{
+		cout << "카드 생성\n";
+		owner = own;
+	}
+
+	virtual void use()
+	{
+		cout << owner << "의 카드를 사용합니다.\n";
+	}
+
+	string GetOnwer()
+	{
+		return owner;
+	}
+
+private:
+	string owner;
+};
+
+class IDCardFactory : public Factory
+{
+public:
+
+protected:
+	virtual shared_ptr<Product> createProduct(string str)
+	{
+		return make_shared<IDCard>(str);
+	}
+
+	virtual void registerProduct(shared_ptr<Product> product)
+	{
+		v.push_back(dynamic_pointer_cast<IDCard>(product)->GetOnwer());
+	}
+
+private:
+
+	vector<string> v;
+};
+
+
+int main()
+{
+	shared_ptr<Factory> factory = make_shared<IDCardFactory>();
+	shared_ptr<Product> card1 = factory->create("김상우");
+	shared_ptr<Product> card2 = factory->create("ㅁㄴㅇ");
+	shared_ptr<Product> card3 = factory->create("ㅂㅈㄷ");
+
+	card1->use();
+	card2->use();
+	card3->use();
+
+	return 0;
+}
+```
 
 
 ## 프로토 타입 패턴
