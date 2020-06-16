@@ -419,13 +419,101 @@ int main()
 
 ## 프로토 타입 패턴
 
-> 객체를 처음부터 생성하지 않고, 기존에 존재하던 객체를 복제하여 새로운 객체를 생성
+> 객체를 처음부터 생성하지 않고, 기존에 존재하던 객체 정보들을 복제하여 새로운 객체를 생성
 
 ![img](https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Prototype_UML.svg/600px-Prototype_UML.svg.png)
 
 - 직접 객체를 생성하지 않기 때문에 객체 생성에 대한 오버헤드가 없음
 - 기존 객체가 프로토 타입 역할
-- Clone 메소드를 제공하여 객체를 복사할 수 있게 한다.
+- java의 경우 clone 메소드를 제공하여 객체를 복사할 수 있게 한다. C++에서는 복사 생성자를 사용하면 되겠다.
+
+
+``` c++
+#include <iostream>
+#include <map>
+#include <string>
+using namespace std;
+
+class Product
+{
+public:
+	virtual void use(string s) = 0;
+	virtual shared_ptr<Product> CreateClone() = 0;
+};
+
+class Manager
+{
+public:
+	void Register(string name, shared_ptr<Product> proto)
+	{
+		m.insert(make_pair(name, proto));
+	}
+
+	shared_ptr<Product> Create(string protoName)
+	{
+		shared_ptr<Product> p = m[protoName];
+		return p->CreateClone();
+	}
+
+private:
+	map<string, shared_ptr<Product>> m;
+};
+
+class MessageBox : public Product
+{
+public:
+	MessageBox(char ch) : messageChar(ch) {}
+
+	void use(string s)
+	{
+		int length = s.size();
+
+		for (int i = 0; i < length + 4; ++i)
+		{
+			cout << messageChar;
+		}
+		cout << "\n";
+		cout << messageChar << " " << s << " " << messageChar;
+
+		cout << "\n";
+
+		for (int i = 0; i < length + 4; ++i)
+		{
+			cout << messageChar;
+		}
+		cout << "\n";
+	}
+
+	virtual shared_ptr<Product> CreateClone()
+	{
+		return make_shared<MessageBox>(*this);
+	}
+
+private:
+	char messageChar;
+};
+
+int main()
+{
+	unique_ptr<Manager> mngr = make_unique<Manager>();
+	shared_ptr<MessageBox> mb0 = make_shared<MessageBox>('*');
+	shared_ptr<MessageBox> mb1 = make_shared<MessageBox>('-');
+
+	mngr->Register("strong Message", mb0);
+	mngr->Register("slash Message", mb1);
+
+	shared_ptr<Product> p1 = mngr->Create("strong Message");
+	shared_ptr<Product> p2 = mngr->Create("slash Message");
+	shared_ptr<Product> p3 = mngr->Create("slash Message");
+
+	p1->use("Hello world");
+	p2->use("Hello world");
+	p2->use("Hello world2");
+
+	return 0;
+}
+```
+
 
 
 
