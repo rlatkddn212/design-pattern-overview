@@ -928,7 +928,6 @@ int main()
 
 - 양파 껍질 처럼 객체가 객체를 덮는 재귀 형태 구조를 가진다.
 - 위임을 통해 기능을 확장한다.
-  - 위임이란? print 함수에서 p.print()를 호출할 경우 이를 위임이라고 부름.
 - 데코레이터란 말 그대로 객체를 장식하는 것, 대표적으로 피자에 토핑을 올리는 예제를 생각할 수 있다.
 - 덧붙일 수 있는 클래스가 많아지면 클래스 분석이 힘들어 질 수 있다.
 
@@ -946,6 +945,166 @@ myPizza = make_unique<Peperoni>(move(myPizza));
 cout << myPizza->GetCost() << endl;
 ```
 
+### 문자열 겹치기 예제
+``` c++
+#include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
+
+class Display
+{
+public:
+	virtual int GetColumns() = 0;
+	virtual int GetRows() = 0;
+
+	virtual string GetRowText(int row) = 0;
+
+	void Show()
+	{
+		for (int i = 0; i < GetRows(); ++i)
+		{
+			cout << GetRowText(i) << endl;
+		}
+	}
+};
+
+class StringDisplay : public Display
+{
+public:
+	StringDisplay(string str)
+	{
+		mStr = str;
+	}
+
+	int GetColumns()
+	{
+		return mStr.size();
+	}
+
+	int GetRows()
+	{
+		return 1;
+	}
+
+	string GetRowText(int row)
+	{
+		if (row == 0)
+		{
+			return mStr;
+		}
+		else
+		{
+			return "";
+		}
+	}
+
+private:
+	string mStr;
+};
+
+class Border : public Display
+{
+protected:
+	Border(shared_ptr<Display> disp)
+	{
+		mDisplay = disp;
+	}
+
+	shared_ptr<Display> mDisplay;
+};
+
+class SideBorder : public Border
+{
+public:
+	SideBorder(shared_ptr<Display> display, char ch) : Border(display), borderChar(ch)
+	{
+
+	}
+
+	int GetColumns()
+	{
+		return mDisplay->GetColumns() + 2;
+	}
+
+	int GetRows()
+	{
+		return mDisplay->GetRows();
+	}
+
+	string GetRowText(int row)
+	{
+		return borderChar + mDisplay->GetRowText(row) + borderChar;
+	}
+
+private:
+	char borderChar;
+};
+
+class FullBorder : public Border
+{
+public:
+	FullBorder(shared_ptr<Display> display) : Border(display)
+	{
+
+	}
+
+	int GetColumns()
+	{
+		return mDisplay->GetColumns() + 2;
+	}
+
+	int GetRows()
+	{
+		return mDisplay->GetRows() + 2;
+	}
+
+	string GetRowText(int row)
+	{
+		if (row == 0 || row == mDisplay->GetRows() + 1)
+		{
+			return "+" + makeLine('-', mDisplay->GetColumns()) + "+";
+		}
+		else
+		{
+			return "|" + mDisplay->GetRowText(row - 1) + "|";
+		}
+	}
+
+	string makeLine(char c, int count) 
+	{
+		string ret;
+		ret.reserve(count);
+		for (int i = 0; i < count; ++i)
+		{
+			ret.push_back(c);
+		}
+
+		return ret;
+	}
+
+private:
+};
+
+int main()
+{
+	shared_ptr<Display> b0 = make_shared<StringDisplay>("Hello, world!");
+	shared_ptr<Display> b1 = make_shared<SideBorder>(b0, '+');
+	shared_ptr<Display> b2 = make_shared<FullBorder>(b1);
+
+	b0->Show();
+	b1->Show();
+	b2->Show();
+
+	shared_ptr<Display> b3 = make_shared<FullBorder>(
+							make_shared<SideBorder>(
+							make_shared<FullBorder>(
+							make_shared<StringDisplay>("Hello, world!")), '+'));
+
+	b3->Show();
+	return 0;
+}
+```
 
 ## 퍼사드 패턴
 
