@@ -1589,9 +1589,146 @@ int main()
 [![img](https://upload.wikimedia.org/wikipedia/commons/9/92/W3sDesign_Mediator_Design_Pattern_UML.jpg)](https://commons.wikimedia.org/wiki/File:W3sDesign_Mediator_Design_Pattern_UML.jpg)
 
 - 여러 클래스가 서로를 호출하는 것보다 중계인을 통해 접근하여 처리되도록한다.
+- 클래스가 서로 A->B, B->C, C->D, D->A 이런식으로 호출 관계가 복잡할 경우
+- A->M, B->M, C->M, D->M, M->A, M->B, M->C, M->D 이런식으로 호출관계를 클래스 M이 관리하도록 한다.
 
-TODO
+### 예제 : 대략적인 구조만
 
+``` c++
+#include <iostream>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <map>
+using namespace std;
+
+class Mediator : public enable_shared_from_this<Mediator>
+{
+public:
+	virtual void CreateColleagues() = 0;
+	virtual void ColleagueChanged() = 0;
+};
+
+class Colleague
+{
+public:
+	virtual void SetMediator(shared_ptr<Mediator> mediator) = 0;
+	virtual void SetColleagueEnabled(bool isEnabled) = 0;
+};
+
+class ColleagueButton : public Colleague
+{
+public:
+	ColleagueButton()
+	{
+
+	}
+
+	virtual void SetMediator(shared_ptr<Mediator> mediator)
+	{
+		mMediator = mediator;
+	}
+
+	virtual void SetColleagueEnabled(bool isEnabled)
+	{
+
+	}
+
+private:
+	shared_ptr<Mediator> mMediator;
+};
+
+class ColleagueTextField : public Colleague
+{
+public:
+	ColleagueTextField()
+	{
+
+	}
+
+	virtual void SetMediator(shared_ptr<Mediator> mediator)
+	{
+		mMediator = mediator;
+	}
+
+	virtual void SetColleagueEnabled(bool isEnabled)
+	{
+
+	}
+
+private:
+	shared_ptr<Mediator> mMediator;
+};
+
+class ColleagueCheckBox : public Colleague
+{
+public:
+	ColleagueCheckBox()
+	{
+
+	}
+
+	virtual void SetMediator(shared_ptr<Mediator> mediator)
+	{
+		mMediator = mediator;
+	}
+
+	virtual void SetColleagueEnabled(bool isEnabled)
+	{
+
+	}
+
+private:
+	shared_ptr<Mediator> mMediator;
+};
+
+class LoginFrame : public Mediator
+{
+public:
+	LoginFrame() : Mediator()
+	{
+		CreateColleagues();
+	}
+
+	void CreateColleagues()
+	{
+		mButton0 = make_shared<ColleagueButton>();
+		mButton1 = make_shared<ColleagueButton>();
+		mCheckBox0 = make_shared<ColleagueCheckBox>();
+		mCheckBox1 = make_shared<ColleagueCheckBox>();
+		mTextField0 = make_shared<ColleagueTextField>();
+		mTextField1 = make_shared<ColleagueTextField>();
+
+		mButton0->SetMediator(shared_from_this());
+		mButton1->SetMediator(shared_from_this());
+		mCheckBox0->SetMediator(shared_from_this());
+		mCheckBox1->SetMediator(shared_from_this());
+		mTextField0->SetMediator(shared_from_this());
+		mTextField1->SetMediator(shared_from_this());
+	}
+
+
+	virtual void ColleagueChanged()
+	{
+
+	}
+
+private:
+	shared_ptr<ColleagueButton> mButton0;
+	shared_ptr<ColleagueButton> mButton1;
+
+	shared_ptr<ColleagueCheckBox> mCheckBox0;
+	shared_ptr<ColleagueCheckBox> mCheckBox1;
+
+	shared_ptr<ColleagueTextField> mTextField0;
+	shared_ptr<ColleagueTextField> mTextField1;
+};
+
+int main()
+{
+	return 0;
+}
+```
 
 
 ## 메멘토 패턴
