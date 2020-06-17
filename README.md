@@ -1750,9 +1750,114 @@ int main()
 
 [![img](https://upload.wikimedia.org/wikipedia/commons/0/01/W3sDesign_Observer_Design_Pattern_UML.jpg)](https://en.wikipedia.org/wiki/File:W3sDesign_Observer_Design_Pattern_UML.jpg)
 
-- 사실 subject객체를 옵저버들이 관찰하고 있는게 아니라 subject 객체가 변경될 경우 옵저버들에게 통보(notify) 해주는 방식
+- subject객체를 옵저버들이 관찰하고 있는게 아니라 subject 객체가 변경될 경우 옵저버들에게 통보(notify) 해주는 방식
   - 옵저버는 구독만 해두고 아무 행동도 취하지 않음.. 전혀 관찰하고 있지 않다.
   - 때문에 publish-subscribe 패턴이라고도 불린다.
+
+``` c++
+#include <iostream>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <map>
+using namespace std;
+
+class NumberGenerator;
+class Observer
+{
+public:
+	virtual void Update(shared_ptr<NumberGenerator> generator) = 0;
+};
+
+class NumberGenerator : public enable_shared_from_this<NumberGenerator>
+{
+public:
+	void AddObserver(shared_ptr<Observer> observer)
+	{
+		mObservers.push_back(observer);
+	}
+
+	void DeleteObserver(shared_ptr<Observer> observer)
+	{
+
+	}
+
+	void NotifyObserves()
+	{
+		for (int i = 0; i < mObservers.size(); ++i)
+		{
+			mObservers[i]->Update(shared_from_this());
+		}
+	}
+
+	virtual int GetNumber() = 0;
+	virtual void Execute() = 0;
+
+private:
+	vector<shared_ptr<Observer>> mObservers;
+};
+
+class RandomeNumberGenerator : public NumberGenerator
+{
+public:
+	int GetNumber()
+	{
+		return mNumber;
+	}
+
+	void Execute()
+	{
+		for (int i = 0; i < 100; ++i)
+		{
+			mNumber = rand() % 100;
+			NotifyObserves();
+		}
+	}
+
+private:
+	int mNumber;
+};
+
+class DigitObserver :public Observer
+{
+public:
+	void Update(shared_ptr<NumberGenerator> generator)
+	{
+		cout << "DigitObserver : " + to_string(generator->GetNumber()) << endl;
+	}
+};
+
+class GraphObserver :public Observer
+{
+public:
+	void Update(shared_ptr<NumberGenerator> generator)
+	{
+		cout << "GraphObserver" << endl;
+		int count = generator->GetNumber();
+
+		for (int i = 0; i < count; ++i)
+		{
+			cout << "*";
+		}
+		cout << endl;
+
+	}
+};
+
+int main()
+{
+	shared_ptr<NumberGenerator> generate = make_shared<RandomeNumberGenerator>();
+
+	shared_ptr<Observer> observer0 = make_shared<DigitObserver>();
+	shared_ptr<Observer> observer1 = make_shared<GraphObserver>();
+
+	generate->AddObserver(observer0);
+	generate->AddObserver(observer1);
+
+	generate->Execute();
+	return 0;
+}
+```
 
 
 
