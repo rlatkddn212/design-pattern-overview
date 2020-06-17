@@ -2029,6 +2029,195 @@ int main()
 - 상태를 클래스로 표현한다.
 - 객체 내부에서 상태 변경이 가능하다.
 
+``` c++
+#include <iostream>
+#include <string>
+#include <vector>
+#include <sstream>
+#include <memory>
+#include <thread>
+#include <chrono>
+#include <fstream>
+using namespace std;
+
+template<typename T>
+class Singleton
+{
+private:
+	Singleton(const Singleton&);
+protected:
+	Singleton() {}
+public:
+
+	static shared_ptr<T> GetInstance()
+	{
+		static shared_ptr<T> mngr = make_shared<T>();
+		return mngr;
+	}
+};
+
+class State;
+class NightState;
+class DayState;
+
+class Context : public enable_shared_from_this<Context>
+{
+public:
+	virtual void ChangeState(shared_ptr<State> state) = 0;
+	virtual void CallSecurityCenter(string str) = 0;
+	virtual void RecordLog(string str) = 0;
+	virtual void SetClock(int time) = 0;
+};
+
+class State
+{
+public:
+	virtual void DoClock(shared_ptr<Context> context, int hour) = 0;
+	virtual void DoUse(shared_ptr<Context> context) = 0;
+	virtual void DoAlarm(shared_ptr<Context> context) = 0;
+	virtual void DoPhone(shared_ptr<Context> context) = 0;
+};
+
+class DayState : public Singleton<DayState>, public State
+{
+public:
+
+	virtual void DoClock(shared_ptr<Context> context, int hour);
+
+	virtual void DoUse(shared_ptr<Context> context)
+	{
+		context->RecordLog("금고 사용 (주간)");
+	}
+
+	virtual void DoAlarm(shared_ptr<Context> context)
+	{
+		context->CallSecurityCenter("비상벨 (주간)");
+	}
+	
+	virtual void DoPhone(shared_ptr<Context> context)
+	{
+		context->CallSecurityCenter("일반 통화 (주간)");
+	}
+
+};
+
+class NightState : public Singleton<NightState>, public State
+{
+public:
+
+	virtual void DoClock(shared_ptr<Context> context, int hour);
+
+	virtual void DoUse(shared_ptr<Context> context)
+	{
+		context->CallSecurityCenter("야간 금고 사용 (야간)");
+	}
+
+	virtual void DoAlarm(shared_ptr<Context> context)
+	{
+		context->CallSecurityCenter("삐요삐요(야간)");
+	}
+
+	virtual void DoPhone(shared_ptr<Context> context)
+	{
+		context->CallSecurityCenter("따르릉(야간)");
+	}
+
+};
+
+void DayState::DoClock(shared_ptr<Context> context, int hour)
+{
+	if (hour < 9 || 17 <= hour)
+	{
+		cout << "상태 변경 : 야간" << endl;
+		context->ChangeState(NightState::GetInstance());
+	}
+}
+
+void NightState::DoClock(shared_ptr<Context> context, int hour)
+{
+	if (9 <= hour && hour < 17)
+	{
+		cout << "상태 변경 : 주간" << endl;
+		context->ChangeState(DayState::GetInstance());
+	}
+}
+
+class SafeSystem :public Context
+{
+public:
+	SafeSystem()
+	{
+		mState = DayState::GetInstance();
+	}
+
+	virtual void ChangeState(shared_ptr<State> state)
+	{
+		mState = state;
+	}
+
+	virtual void CallSecurityCenter(string str)
+	{
+		cout << "[경보] : " << str << endl;
+	}
+
+	virtual void RecordLog(string str)
+	{
+		cout << "[기록] : " << str << endl;
+	}
+
+	virtual void SetClock(int time)
+	{
+		cout << "현재 시간 : "  << time << ":00" << endl;
+		mState->DoClock(shared_from_this(), time);
+	}
+
+	// 랜덤으로 액션 발생
+	virtual void Action()
+	{
+		int random = rand() % 10;
+
+		if (random == 0)
+		{
+			cout << "@@비상벨 사용@@" << endl;
+			mState->DoAlarm(shared_from_this());
+		}
+		else if (random == 2)
+		{
+			cout << "@@금고 사용@@" << endl;
+			mState->DoUse(shared_from_this());
+		}
+		else if (random ==3)
+		{
+			cout << "@@통화 사용@@" << endl;
+			mState->DoPhone(shared_from_this());
+		}
+		else
+		{
+			// 아무것도 안함
+		}
+
+	}
+
+private:
+	shared_ptr<State> mState;
+};
+
+int main()
+{
+	shared_ptr<SafeSystem> system = make_shared<SafeSystem>();
+	while (true)
+	{
+		for (int i = 0; i < 24; ++i)
+		{
+			system->SetClock(i);
+			system->Action();
+			this_thread::sleep_for(1s);
+		}
+	}
+
+	return 0;
+}
+```
 
 
 ## 전략 패턴
