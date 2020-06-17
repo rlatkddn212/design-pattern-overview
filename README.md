@@ -1742,6 +1742,165 @@ int main()
   - 매멘토 패턴은 메멘토 객체가 다른 객체에 포함되어 상태 기록을 도와준다.
   - 커맨드 객체가 메멘토 패턴으로 구현되어 undo나 redo를 사용할 수도 있다.
 
+``` c++
+#include <iostream>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <map>
+using namespace std;
+
+class Memento
+{
+public:
+	Memento(int money)
+	{
+		mMoney = money;
+	}
+	
+	int GetMoney()
+	{
+		return mMoney;
+	}
+
+	void AddFruit(string fruit)
+	{
+		mFruits.push_back(fruit);
+	}
+	vector<string> GetFruits()
+	{
+		return mFruits;
+	}
+private:
+	int mMoney;
+	vector<string> mFruits;
+};
+
+class Gamer
+{
+public:
+	Gamer(int money)
+	{
+		mMoney = money;
+	}
+
+	void Bet()
+	{
+		int dice = rand() % 6 + 1;
+
+		if (dice == 1)
+		{
+			cout << "100원 증가" << endl;
+			mMoney += 100;
+		}
+		else if (dice == 2)
+		{
+			cout << "절반 날아감" << endl;
+			mMoney /= 2;
+		}
+		else if (dice == 6)
+		{
+			string f = GetFruit();
+			cout << f << "를 받았습니다." << endl;
+			mFruits.push_back(f);
+		}
+		else
+		{
+			cout << "변한것 없음" << endl;
+		}
+	}
+
+	shared_ptr<Memento> CreateMemento()
+	{
+		shared_ptr<Memento> m = make_shared<Memento>(mMoney);
+
+		for (int i = 0; i < mFruits.size(); ++i)
+		{
+			if (strncmp(mFruits[i].c_str(), "맛나는 ", 8))
+			{
+				m->AddFruit(mFruits[i]);
+			}
+		}
+
+		return m;
+	}
+
+	void RestoreMemento(shared_ptr<Memento> memento)
+	{
+		mMoney = memento->GetMoney();
+		mFruits = memento->GetFruits();
+	}
+
+	string GetFruit()
+	{
+		string prefix = "";
+		if (rand() % 2 == 0)
+		{
+			prefix += "맛나는 ";
+		}
+		return  prefix + Fruits_Name[rand() % 4];
+	}
+
+	int GetMoney()
+	{
+		return mMoney;
+	}
+	
+	void PrintFruits()
+	{
+		for (int i = 0; i < mFruits.size(); ++i)
+		{
+			cout << mFruits[i];
+		}
+	}
+
+	friend ostream& operator<<(ostream& out, const Gamer& gamer);
+
+private:
+	int mMoney;
+	vector<string> mFruits;
+	
+	string Fruits_Name[4] = { "사과", "포도", "바나나", "귤" };
+};
+
+ostream& operator<<(ostream& out, Gamer& gamer)
+{
+	out << "[money = " << to_string(gamer.GetMoney()) + ", fruits = ";
+	gamer.PrintFruits();
+	out << "]\n";
+
+	return out;
+}
+
+int main()
+{
+	shared_ptr<Gamer> gamer = make_shared<Gamer>(100);
+	shared_ptr<Memento> memento = gamer->CreateMemento();
+
+	for (int i = 0; i < 100; ++i)
+	{
+		cout << "=============== " + to_string(i) << endl;
+		cout << "현상 : " << *gamer;
+
+		gamer->Bet();
+
+		cout << "소지금 : " + to_string(gamer->GetMoney()) + " 원이 되었습니다.\n";
+
+		if (gamer->GetMoney() > memento->GetMoney())
+		{
+			cout << "상태 저장" << endl;
+			memento = gamer->CreateMemento();
+		}
+		else if (gamer->GetMoney() < memento->GetMoney())
+		{
+			cout << "상태 복원" << endl;
+			gamer->RestoreMemento(memento);
+		}
+	}
+
+	return 0;
+}
+```
 
 
 ## 옵저버 패턴
