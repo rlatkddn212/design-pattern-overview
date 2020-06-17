@@ -231,55 +231,55 @@ struct ImageProduct
 			cout << v[i] << endl;
 		}
 	}
-	
+
 	vector<string> v;
 };
 
 struct Builder
 {
-	virtual							~Builder() {}
-	virtual ImageProduct			Build() = 0;
-	virtual Builder&				WithFilter(string text) = 0;
-	virtual Builder&				WithMakeUp(string text) = 0;
-	virtual Builder&				WithStyle(string text) = 0;
+	virtual ~Builder() {}
+	virtual ImageProduct Build() = 0;
+	virtual Builder& WithFilter(string text) = 0;
+	virtual Builder& WithMakeUp(string text) = 0;
+	virtual Builder& WithStyle(string text) = 0;
 };
 
 
 struct ImageBuilder : public Builder
-{	
-									~ImageBuilder() {}
+{
+	~ImageBuilder() {}
 
-	ImageProduct					Build();
-	
+	ImageProduct Build();
+
 	Builder& WithFilter(string text)
 	{
 		mImageItem.push_back(make_pair("필터 : ", text));
 		return *this;
 	}
-	
+
 	Builder& WithMakeUp(string text)
 	{
 		mImageItem.push_back(make_pair("메이크업 : ", text));
 		return *this;
 	}
-	
+
 	Builder& WithStyle(string text)
 	{
 		mImageItem.push_back(make_pair("스타일 : ", text));
 		return *this;
 	}
-	
+
 	vector<pair<string, string>>	mImageItem;
 };
 
 struct Director
 {
-									Director(shared_ptr<Builder> builder) : builder(builder) {}
-									~Director() { }
-	void							Construct();
+	Director(shared_ptr<Builder> builder) : builder(builder) {}
+	~Director() { }
+	void Construct();
 
 private:
-	shared_ptr<Builder>				builder;
+	shared_ptr<Builder>	builder;
 };
 
 ImageProduct ImageBuilder::Build()
@@ -305,11 +305,11 @@ int main()
 {
 	shared_ptr<Builder> builder(make_shared<ImageBuilder>());
 	shared_ptr<Director> director(make_shared<Director>(builder));
-	
+
 	director->Construct();
 	ImageProduct p = builder->Build();
 	p.Print();
-	
+
 	return 0;
 }
 ```
@@ -2564,7 +2564,7 @@ int main()
 ```
 
 
-## 참고 자료
+## 참고 자료 
 
 https://web.archive.org/web/20150906155800/http://www.objectmentor.com/resources/articles/Principles_and_Patterns.pdf
 
