@@ -1700,10 +1700,11 @@ int main()
 
 ## 비지터 패턴
 
-> 데이터 구조와 알고리즘을 분리시키는 디자인 패턴
+> 기존 클래스 계층 구조에 변경없이 처리(behavior)를 추가하는 패턴
 
-- 일반적인 클래스 구조는, 맴버 변수(데이터), 맴버 메서드(알고리즘)로 구성되는데 이걸 분리한다니?
-
+- 이미 만들어진 클래스가 있을 때, 새로운 기능을 추가하고 싶다면 비지터 패턴을 고려해볼 수 있다.
+- 기존 클래스의 구조를 수정하지 않고 확장하기 때문에 Open-closed prineiple을 만족한다.
+- 추가 기능이 필요할 경우 Visitor를 상속 받아 구체 Visitor를 만들어 적용시켜 주면된다.
 
 [![img](https://upload.wikimedia.org/wikipedia/en/thumb/e/eb/Visitor_design_pattern.svg/430px-Visitor_design_pattern.svg.png)](https://en.wikipedia.org/wiki/File:Visitor_design_pattern.svg)
 
