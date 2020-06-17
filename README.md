@@ -1149,10 +1149,9 @@ int main()
 
 
 
-
 ## 책임 연쇄 패턴
 
-> 객체를 사슬 처럼 연결 해둔 후 연결된 사슬을 차례로 이동하면서 객체를 결정한다.
+> 객체를 사슬 처럼 연결 해둔 후 연결된 사슬을 차례로 이동하면서 객체에 대한 처리를 결정한다.
 
 [![img](https://upload.wikimedia.org/wikipedia/commons/6/6a/W3sDesign_Chain_of_Responsibility_Design_Pattern_UML.jpg)](https://en.wikipedia.org/wiki/File:W3sDesign_Chain_of_Responsibility_Design_Pattern_UML.jpg)
 
@@ -1160,11 +1159,160 @@ int main()
 - 그림에 오른쪽 시퀀스 다이어그램을 보면 시퀀스가 오른쪽으로 이동하면서 처리한다.
 - 동적으로 처리를 결정할 수 있다.
 
-### 예제
+``` c++
+#include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
 
-- 예를 들면 게임에 전투 시스템을 예로 들어보자.
+class Trouble
+{
+public:
+	Trouble(int num) :number(num)
+	{
 
-- 기본 공격력에, 마법 데미지 추가, 크리티컬 추가, 스킬 퍼뎀 추가 등등.. 이런 처리를 이어서 처리해줄 수 있다.
+	}
+
+	int GetNumber()
+	{
+		return number;
+	}
+
+	string GetStr()
+	{
+		return "[Trouble " + to_string(number) + "]";
+	}
+
+private:
+	int number;
+};
+
+class Support
+{
+public:
+	Support(string s): mName(s){}
+	shared_ptr<Support> SetNext(shared_ptr<Support> next)
+	{
+		return mNext = next;
+	}
+
+	void DoSupport(shared_ptr<Trouble> trouble)
+	{
+		if (Resolve(trouble))
+		{
+			Done(trouble);
+		}
+		else if (mNext != nullptr)
+		{
+			mNext->DoSupport(trouble);
+		}
+		else
+		{
+			Fail(trouble);
+		}
+	}
+
+protected:
+	virtual bool Resolve(shared_ptr<Trouble> trouble) = 0;
+	bool Done(shared_ptr<Trouble> trouble)
+	{
+		cout << trouble->GetStr() + " 해결됨 " + mName + "에 의해서.\n";
+	}
+
+	bool Fail(shared_ptr<Trouble> trouble)
+	{
+		cout << trouble->GetStr() + " 해결실패!\n";
+	}
+
+private:
+	string mName;
+	shared_ptr<Support> mNext;
+};
+
+class LimitSupport :public  Support
+{
+public:
+	LimitSupport(string name, int limit) : Support(name), mLimit(limit){}
+
+protected:
+	bool Resolve(shared_ptr<Trouble> trouble)
+	{
+		if (trouble->GetNumber() < mLimit)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+private:
+	int mLimit;
+};
+
+class OddSupport :public  Support
+{
+public:
+	OddSupport(string name) : Support(name) {}
+
+protected:
+	bool Resolve(shared_ptr<Trouble> trouble)
+	{
+		if (trouble->GetNumber() % 2 == 1)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+private:
+};
+
+
+class SpecialSupport : public Support
+{
+public:
+	SpecialSupport(string name, int number) : Support(name), mNumber(number) {}
+
+protected:
+	bool Resolve(shared_ptr<Trouble> trouble)
+	{
+		if (trouble->GetNumber() == mNumber)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+private:
+	int mNumber;
+};
+
+int main()
+{
+	shared_ptr<Support> a = make_shared<LimitSupport>("A", 10);
+	shared_ptr<Support> b = make_shared<OddSupport>("B");
+	shared_ptr<Support> c = make_shared<LimitSupport>("C", 90);
+	shared_ptr<Support> d = make_shared<SpecialSupport>("D",96);
+	
+	a->SetNext(b)->SetNext(b)->SetNext(c)->SetNext(d);
+
+
+	for (int i = 0; i < 100; ++i)
+	{
+		a->DoSupport(make_shared<Trouble>(i));
+	}
+
+	return 0;
+}
+```
 
 
 
