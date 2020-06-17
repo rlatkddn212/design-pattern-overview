@@ -1118,6 +1118,119 @@ int main()
   - Facade라는 말처럼 건물의 정면 부분(외관)만 보이도록 한다는 의미
 
 
+``` c++
+#include <iostream>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <map>
+using namespace std;
+
+struct Properties
+{
+	Properties()
+	{
+		m.insert(make_pair("a@naver.com", "a"));
+		m.insert(make_pair("b@naver.com", "b"));
+		m.insert(make_pair("c@daum.com", "c"));
+		m.insert(make_pair("d@naver.com", "d"));
+	}
+
+	map<string, string> m;
+};
+
+class Database
+{
+public:
+	static shared_ptr<Properties> GetProperties(string dbname)
+	{
+		shared_ptr<Properties> prop = make_shared<Properties>();
+		return prop;
+	}
+
+private:
+	Database() {}
+};
+
+class HtmlWriter
+{
+public:
+	
+	HtmlWriter(ofstream& out):fout(out)
+	{
+	}
+
+	void Title(string title)
+	{
+		if (fout.is_open())
+		{
+			fout << "<html>\n";
+			fout << "<head>\n";
+			fout << "<title>" << title << "</title>\n";
+			fout << "</head>\n";
+			fout << "<body>\n";
+			fout << "<h1>" << title << "</h1>\n";
+		}
+	}
+
+	void Paragraph(string msg)
+	{
+		if (fout.is_open())
+		{
+			fout << "<p>"<< msg << "</p>\n";
+		}
+	}
+
+	void Link(string href, string caption)
+	{
+		Paragraph("<a href=\"" + href + "\">" +caption + "</a>");
+	}
+
+	void MailTo(string mailaddr, string username)
+	{
+		Link("mailto:" + mailaddr, username);
+	}
+	void Close()
+	{
+		if (fout.is_open())
+		{
+			fout << "</body>\n";
+			fout << "</html>\n";
+		}
+	}
+
+private:
+	ofstream& fout;
+};
+
+// facade 패턴
+class PageMaker
+{
+private:
+	PageMaker() {}
+public:
+	static void makeWelcomePage(string mailaddr, string filename)
+	{
+		shared_ptr<Properties> prop = Database::GetProperties(mailaddr);
+
+		string username = prop->m[mailaddr];
+		ofstream out;
+		out.open(filename);
+		shared_ptr<HtmlWriter> hw = make_shared<HtmlWriter>(out);
+		hw->Title("Welcome to " + username + "'s page!");
+		hw->Paragraph(username + "의 페이지에 오신걸 환영");
+		hw->Paragraph("메일 주세요.");
+		hw->MailTo(mailaddr, username);
+	}
+};
+
+int main()
+{
+	PageMaker::makeWelcomePage("a@naver.com", "welcome.html");
+	return 0;
+}
+```
+
 
 ## 플라이웨이트 패턴
 
