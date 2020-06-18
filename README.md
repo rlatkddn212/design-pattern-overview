@@ -1836,7 +1836,247 @@ int main()
 - 간단한 문법을 체크 하고 싶다면 생각해볼만 하다.
   - 수식을 읽어 그래프를 그려주는 프로그램을 만든다고 할 때 정상적인 수식인지 체크 해볼 수 있다.
 
+``` c++
+#include <iostream>
+#include <string>
+#include <vector>
+#include <sstream>
+#include <memory>
+#include <thread>
+#include <chrono>
+#include <map>
+#include <fstream>
+#include <stack>
+using namespace std;
 
+class Context
+{
+public:
+	Context(string str) : ss(str)
+	{
+		NextToken();
+	}
+
+	void SkipToken(string str)
+	{
+		if (str != mCurrentToken)
+		{
+			cout << "오류";
+		}
+
+		NextToken();
+	}
+
+	string CurrentToken()
+	{
+		return mCurrentToken;
+	}
+
+	int CurrentNumber()
+	{
+		int number = atoi(mCurrentToken.c_str());
+		return number;
+	}
+
+	string NextToken()
+	{
+		if (getline(ss, mCurrentToken, ' '))
+		{
+			return mCurrentToken;
+		}
+		else
+		{
+			return mCurrentToken;
+		}
+	}
+
+private:
+	string mCurrentToken;
+	stringstream ss;
+};
+
+class Node
+{
+public:
+	virtual void Parse(shared_ptr<Context> context) = 0;
+	virtual ostream& Print(ostream& out) = 0;
+
+	friend ostream& operator<<(ostream& out, Node& node)
+	{
+		return node.Print(out);
+	}
+};
+
+class CommandNode;
+class RepeatCommandNode;
+class PrimitiveNode;
+class CommandListNode;
+
+class ProgramNode :public Node
+{
+public:
+	void Parse(shared_ptr<Context> context);
+	virtual ostream& Print(ostream& out);
+private:
+	shared_ptr<CommandListNode> mCommandListNode;
+};
+
+class CommandListNode :public Node
+{
+public:
+	void Parse(shared_ptr<Context> context);
+	virtual ostream& Print(ostream& out);
+private:
+	vector<shared_ptr<Node>> mList;
+};
+
+class CommandNode :public Node
+{
+public:
+	void Parse(shared_ptr<Context> context);
+	virtual ostream& Print(ostream& out);
+
+private:
+	shared_ptr<Node> mNode;
+};
+
+class RepeatCommandNode :public Node
+{
+public:
+	void Parse(shared_ptr<Context> context);
+	virtual ostream& Print(ostream& out);
+
+private:
+	int mNumber;
+	shared_ptr<Node> mCommandListNode;
+};
+
+class PrimitiveNode :public Node
+{
+public:
+	void Parse(shared_ptr<Context> context);
+	virtual ostream& Print(ostream& out);
+private:
+	string mName;
+};
+
+ostream& ProgramNode::Print(ostream& out)
+{
+	out << "[program " << *mCommandListNode << "]";
+	return out;
+}
+
+ostream& CommandListNode::Print(ostream& out)
+{
+	for (int i = 0; i < mList.size(); ++i)
+	{
+		out << *mList[i] << " ";
+	}
+	return out;
+}
+
+ostream& CommandNode::Print(ostream& out)
+{
+	out << *mNode;
+	return out;
+}
+ostream& RepeatCommandNode::Print(ostream& out)
+{
+	out << "[repeat " << to_string(mNumber) << " " << *mCommandListNode << "]";
+	return out;
+}
+ostream& PrimitiveNode::Print(ostream& out)
+{
+	out << mName;
+	return out;
+}
+
+void ProgramNode::Parse(shared_ptr<Context> context)
+{
+	context->SkipToken("program");
+	mCommandListNode = make_shared<CommandListNode>();
+	mCommandListNode->Parse(context);
+}
+
+void CommandListNode::Parse(shared_ptr<Context> context)
+{
+	while (true)
+	{
+		if (context->CurrentToken() == "")
+		{
+			cout << "파서 오류";
+		}
+		else if (context->CurrentToken() == "end")
+		{
+			context->SkipToken("end");
+			break;
+		}
+		else
+		{
+			shared_ptr<Node> commandNode = make_shared<CommandNode>();
+			commandNode->Parse(context);
+			mList.push_back(commandNode);
+		}
+	}
+}
+
+void CommandNode::Parse(shared_ptr<Context> context)
+{
+	if (context->CurrentToken() == "repeat")
+	{
+		mNode = make_shared<RepeatCommandNode>();
+		mNode->Parse(context);
+	}
+	else
+	{
+		mNode = make_shared<PrimitiveNode>();
+		mNode->Parse(context);
+	}
+}
+
+void RepeatCommandNode::Parse(shared_ptr<Context> context)
+{
+	context->SkipToken("repeat");
+	mNumber = context->CurrentNumber();
+	context->NextToken();
+	mCommandListNode = make_shared<CommandListNode>();
+	mCommandListNode->Parse(context);
+}
+
+void PrimitiveNode::Parse(shared_ptr<Context> context)
+{
+	mName = context->CurrentToken();
+	context->SkipToken(mName);
+
+	if (mName != "go" && mName != "right" && mName != "left")
+	{
+		cout << "파서 오류" << endl;
+	}
+}
+
+int main()
+{
+	string arr[5]
+		= {
+			"program end",
+			"program go end",
+			"program go right go right go right go right end",
+			"program repeat 4 go right end end",
+			"program repeat 4 repeat 3 go right go left end right end end",
+	};
+
+	for (int i = 0; i < 5; ++i)
+	{
+		cout << arr[i] << endl;
+
+		shared_ptr<Node> node = make_shared<ProgramNode>();
+		node->Parse(make_shared<Context>(arr[i]));
+		cout << *node << endl;
+	}
+
+	return 0;
+}
+```
 
 ## 반복자(Iterator) 패턴
 
