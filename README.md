@@ -1376,7 +1376,119 @@ int main()
 - 네트워크 처리를 해줄 때 처리시간이 적은 것과 긴것을 나눠서 처리해줄 수 있다.
 
 ``` C++
+#include <iostream>
+#include <string>
+#include <vector>
+#include <sstream>
+#include <memory>
+#include <thread>
+#include <chrono>
+#include <map>
+#include <fstream>
+using namespace std;
 
+class Printable
+{
+public:
+	virtual void SetPrinterName(string name) = 0;
+	virtual string GetPrinterName() = 0;
+	virtual void Print(string str) = 0;
+};
+
+
+class Printer : public Printable
+{
+public:
+	Printer() {}
+	Printer(string name)
+	{
+		mName = name;
+		heavyJob("Print 인스턴스 생성 : " + name);
+	}
+
+	virtual void SetPrinterName(string name)
+	{
+		mName = name;
+	}
+
+	virtual string GetPrinterName()
+	{
+		return mName;
+	}
+
+	virtual void Print(string str)
+	{
+		cout << " == " << mName << " ==  " << endl;
+		cout << str << endl;
+	}
+
+private:
+	void heavyJob(string msg)
+	{
+		cout << msg << endl;
+
+		for (int i = 0; i < 5; ++i)
+		{
+			this_thread::sleep_for(1s);
+			cout << ".";
+		}
+
+		cout << "완료." << endl;
+	}
+
+	string mName;
+};
+
+class PrinterProxy : public Printable
+{
+public:
+	PrinterProxy() {}
+	PrinterProxy(string str) :mName(str) {}
+
+	virtual void SetPrinterName(string name)
+	{
+		if (real != nullptr)
+		{
+			real->SetPrinterName(name);
+		}
+
+		mName = name;
+	}
+
+	virtual string GetPrinterName()
+	{
+		return mName;
+	}
+
+	virtual void Print(string str)
+	{
+		Realize();
+		real->Print(str);
+	}
+
+	void Realize()
+	{
+		if (real == NULL)
+		{
+			real = make_shared<Printer>(mName);
+		}
+	}
+
+private:
+	string mName;
+	shared_ptr<Printer> real;
+};
+
+int main()
+{
+	shared_ptr<Printable> p = make_shared<PrinterProxy>("A");
+	cout << "이름 : " << p->GetPrinterName() << endl;
+	p->SetPrinterName("B");
+	cout << "이름 : " << p->GetPrinterName() << endl;
+	p->Print("Hello World!");
+	return 0;
+}
+```
 
 # 행동 패턴 (Behavioral)
 
