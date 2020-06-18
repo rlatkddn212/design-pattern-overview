@@ -1673,7 +1673,160 @@ int main()
 - 명령을 객체로 관리한다.
 - 명령집합을 저장해둔 후 이를 재사용하거나 명령을 사용하기 전으로 되돌릴 수 있다.
 
+``` c++
+#include <iostream>
+#include <string>
+#include <vector>
+#include <sstream>
+#include <memory>
+#include <thread>
+#include <chrono>
+#include <map>
+#include <fstream>
+#include <stack>
+using namespace std;
 
+class Command
+{
+public:
+	virtual void Execute() = 0;
+};
+
+class Drawable
+{
+public:
+	virtual void Draw(int x, int y) = 0;
+};
+
+class MacroCommand :public Command
+{
+public:
+	void Execute()
+	{
+		for (int i = 0; i < mCommands.size(); ++i)
+		{
+			mCommands[i]->Execute();
+		}
+	}
+
+	void Append(shared_ptr<Command> command)
+	{
+		if (command.get() != this)
+		{
+			mCommands.push_back(command);
+		}
+	}
+
+	void Undo()
+	{
+		if (!mCommands.empty())
+		{
+			mCommands.pop_back();
+		}
+	}
+
+	void Clear()
+	{
+		mCommands.clear();
+	}
+
+private:
+	vector<shared_ptr<Command>> mCommands;
+};
+
+class DrawCommand :public Command
+{
+public:
+	DrawCommand(shared_ptr<Drawable> canvas, pair<int, int> p)
+	{
+		mDrawable = canvas;
+		mPos = p;
+	}
+
+	void Execute()
+	{
+		mDrawable->Draw(mPos.second, mPos.first);
+	}
+
+private:
+	pair<int, int> mPos;
+	shared_ptr<Drawable> mDrawable;
+};
+
+class DrawCanvas : public Drawable
+{
+public:
+	DrawCanvas(int width, int height, shared_ptr<MacroCommand> history)
+		: canvas(height, vector<char>(width, ' '))
+	{
+		mHistory = history;
+	}
+
+	void RePaint()
+	{
+		for (int i = 0; i < canvas.size(); ++i)
+		{
+			fill(canvas[i].begin(), canvas[i].end(), ' ');
+		}
+
+		mHistory->Execute();
+	}
+
+	void Paint()
+	{
+		for (int i = 0; i < canvas.size(); ++i)
+		{
+			for (int j = 0; j < canvas[i].size(); ++j)
+			{
+				cout << canvas[i][j];
+			}
+			cout << endl;
+		}
+	}
+
+	void Draw(int x, int y)
+	{
+		canvas[y][x] = '*';
+	}
+
+private:
+
+	vector<vector<char>> canvas;
+	shared_ptr<MacroCommand> mHistory;
+};
+
+int main()
+{
+	shared_ptr<MacroCommand> history = make_shared<MacroCommand>();
+	shared_ptr<DrawCanvas> canvas = make_shared<DrawCanvas>(20, 10, history);
+
+	int arr[10][2] = {
+		{2,5},{1,6},{2,7},
+		{2,13},{1,14},{2,15},
+		{5,8},{6,9},{6,10},{5,11},
+	};
+
+	for (int i = 0; i < 20; ++i)
+	{
+		cout << "명령 : " << to_string(i) << endl;
+		if (i < 10)
+		{ 
+			shared_ptr<DrawCommand> cmd = make_shared<DrawCommand>(canvas, make_pair(arr[i][0], arr[i][1]));
+			history->Append(cmd);
+			cmd->Execute();
+			canvas->Paint();
+		}
+		else
+		{
+			history->Undo();
+			canvas->RePaint();
+			canvas->Paint();
+		}
+	}
+
+	return 0;
+}
+```
 
 ## 인터프리터 패턴
 
