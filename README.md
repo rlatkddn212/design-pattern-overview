@@ -1373,10 +1373,9 @@ int main()
 [![img](https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Proxy_pattern_diagram.svg/439px-Proxy_pattern_diagram.svg.png)](https://en.wikipedia.org/wiki/File:Proxy_pattern_diagram.svg)
 
 
-
-- 예를 들면 스마트 포인터가 있다. 객체의 생성과 소멸을 대리해준다.
 - 네트워크 처리를 해줄 때 처리시간이 적은 것과 긴것을 나눠서 처리해줄 수 있다.
 
+``` C++
 
 
 # 행동 패턴 (Behavioral)
