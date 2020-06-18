@@ -1240,9 +1240,131 @@ int main()
 
 - 권투에서 가장 낮은 체급이 flyweight 인데 이말 처럼 객체를 가볍게하는 패턴
 - 자주 사용하는 객체를 pool에 담았다가 재사용한다.
-- cache, LRU, Pool 등을 클래스 형태로 구현했다고 보면될 것
+- Pool을 클래스 형태로 구현했다고 보면될 것
 
+``` C++
+#include <iostream>
+#include <string>
+#include <vector>
+#include <sstream>
+#include <memory>
+#include <thread>
+#include <chrono>
+#include <map>
+#include <fstream>
+using namespace std;
 
+template<typename T>
+class Singleton
+{
+private:
+	Singleton(const Singleton&);
+protected:
+	Singleton() {}
+public:
+
+	static shared_ptr<T> GetInstance()
+	{
+		static shared_ptr<T> mngr = make_shared<T>();
+		return mngr;
+	}
+};
+
+class BigChar
+{
+public:
+	BigChar(char charname)
+	{
+		mCharName = charname;
+		mFontData = mCharName;
+		switch (charname)
+		{
+		case '0': mFontData = "Zero";
+			break;
+		case '1': mFontData = "One";
+			break;
+		case '2': mFontData = "Two";
+			break;
+		case '3': mFontData = "Three";
+			break;
+		case '4': mFontData = "Four";
+			break;
+		case '5': mFontData = "Five";
+			break;
+		case '6': mFontData = "Six";
+			break;
+		case '7': mFontData = "Seven";
+			break;
+		case '8': mFontData = "Eight";
+			break;
+		case '9': mFontData = "Nine";
+			break;
+		default:
+			mFontData = "";
+		}
+	}
+
+	void Print()
+	{
+		cout << mFontData << endl;
+	}
+
+private:
+	char mCharName;
+	string mFontData;
+};
+
+class BigCharFactory : public Singleton<BigCharFactory>
+{
+public:
+	shared_ptr<BigChar> GetBigChar(char charname)
+	{
+		shared_ptr<BigChar> bc = pool[charname];
+
+		if (bc == nullptr)
+		{
+			bc = make_shared<BigChar>(charname);
+			pool[charname] = bc;
+		}
+
+		return bc;
+	}
+private:
+	map<char, shared_ptr<BigChar>> pool;
+};
+
+class BigString
+{
+public:
+	BigString(string str)
+	{
+		mBigchars.resize(str.size());
+		shared_ptr<BigCharFactory> bf = BigCharFactory::GetInstance();
+		for (int i = 0; i < mBigchars.size(); ++i)
+		{
+			mBigchars[i] = bf->GetBigChar(str[i]);
+		}
+	}
+
+	void Print()
+	{
+		for (int i = 0; i < mBigchars.size(); ++i)
+		{
+			mBigchars[i]->Print();
+		}
+	}
+
+private:
+	vector<shared_ptr<BigChar>> mBigchars;
+};
+
+int main()
+{
+	shared_ptr<BigString> bs = make_shared<BigString>("5551231");
+	bs->Print();
+	return 0;
+}
+```
 
 ## 프록시 패턴
 
