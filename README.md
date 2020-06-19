@@ -1665,7 +1665,6 @@ int main()
 ## 커맨드 패턴
 
 >요청을 객체의 형태로 캡슐화하여 사용자가 보낸 요청을 나중에 이용할 수 있도록 
->
 >필요한 정보를 저장하고 되돌릴 수 있게 하는 패턴
 
 [![img](https://upload.wikimedia.org/wikipedia/commons/c/c8/W3sDesign_Command_Design_Pattern_UML.jpg)](https://en.wikipedia.org/wiki/File:W3sDesign_Command_Design_Pattern_UML.jpg)
@@ -2082,6 +2081,10 @@ int main()
 
 > 반복자를 사용하여 컨테이너의 요소를 차례로 접근하는 디자인 패턴
 
+
+[![img](https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Iterator_UML_class_diagram.svg/500px-Iterator_UML_class_diagram.svg.png)](https://en.wikipedia.org/wiki/File:Iterator_UML_class_diagram.svg)
+
+
 - 컨테이너를 하나씩 검색할 때 for 문을 사용하여 i를 1씩 증가시키며 찾는다.
 - for문에서 사용되는 i를 추상화하는 패턴이다.
 - i를 추상화하면 복잡함만 더 늘어나는게 아닐까라고 생각할 수 있겠지만, 오히려 코드가 더 유연해진다.
@@ -2206,8 +2209,6 @@ int main()
 
 ```
 
-[![img](https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Iterator_UML_class_diagram.svg/500px-Iterator_UML_class_diagram.svg.png)](https://en.wikipedia.org/wiki/File:Iterator_UML_class_diagram.svg)
-
 ## 중재자 패턴
 
 > 모든 클래스간의 복잡한 로직을 캡슐화하고, 하나의 클래스에 위임하여 처리
@@ -2218,7 +2219,7 @@ int main()
 - 클래스가 서로 A->B, B->C, C->D, D->A 이런식으로 호출 관계가 복잡할 경우
 - A->M, B->M, C->M, D->M, M->A, M->B, M->C, M->D 이런식으로 호출관계를 클래스 M이 관리하도록 한다.
 
-### 예제 : 대략적인 구조만
+### 예제 : 대략적인 구조
 
 ``` c++
 #include <iostream>
@@ -3179,11 +3180,11 @@ int main()
 
 > 기존 클래스 계층 구조에 변경없이 처리(behavior)를 추가하는 패턴
 
+[![img](https://upload.wikimedia.org/wikipedia/en/thumb/e/eb/Visitor_design_pattern.svg/430px-Visitor_design_pattern.svg.png)](https://en.wikipedia.org/wiki/File:Visitor_design_pattern.svg)
+
 - 이미 만들어진 클래스가 있을 때, 새로운 기능을 추가하고 싶다면 비지터 패턴을 고려해볼 수 있다.
 - 기존 클래스의 구조를 수정하지 않고 확장하기 때문에 Open-closed prineiple을 만족한다.
 - 추가 기능이 필요할 경우 Visitor를 상속 받아 구체 Visitor를 만들어 적용시켜 주면된다.
-
-[![img](https://upload.wikimedia.org/wikipedia/en/thumb/e/eb/Visitor_design_pattern.svg/430px-Visitor_design_pattern.svg.png)](https://en.wikipedia.org/wiki/File:Visitor_design_pattern.svg)
 
 
 ``` C++
